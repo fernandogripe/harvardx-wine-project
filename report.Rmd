@@ -1,0 +1,598 @@
+---
+title: "PH125.9x Data Science: Capstone - Application and comparison of different Machine Learning methods to discover the quality of red wine"
+author: "Fernando Gripe"
+date: "February 22, 2023"
+output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: sentence
+always_allow_html: true
+
+
+---
+
+
+<style>
+
+body {
+text-align: justify;
+font-family: Arial
+}
+
+table th:first-of-type {
+    width: 10%;
+}
+table th:nth-of-type(2) {
+    width: 10%;
+}
+table th:nth-of-type(3) {
+    width: 50%;
+}
+table th:nth-of-type(4) {
+    width: 30%;
+}
+
+h1.title {
+  font-size: 28px;
+  color: DarkRed;
+}
+
+h1 { /* Header 1 */
+  font-size: 24px;
+  color: DarkBlue;
+}
+
+h2 { /* Header 2 */
+  font-size: 22px;
+  color: DarkBlue;
+}
+
+h3 { /* Header 3 */
+  font-size: 21px;
+  color: DarkBlue;
+}
+
+h4 { /* Header 4 */
+  font-size: 20px;
+  color: DarkBlue;
+}
+
+h5 { /* Header 5 */
+  font-size: 19px;
+  color: DarkBlue;
+}
+
+a:link {
+  color: DarkBlue;
+  text-decoration: underline;
+}
+
+</style>
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(tidy=TRUE)
+```
+
+```{r}
+
+```
+
+<br>
+
+## 1. Introduction and Machine Learning\
+
+According to [Javatpoint](https://www.javatpoint.com/machine-learning-techniques) Machine learning is a data analytics technique that teaches computers learn from experience. Machine learning algorithms use computational methods to directly "learn" from data. As the number of samples available for learning increases, the algorithm adapts to improve performance. 
+
+Machine learning can uses two techniques: supervised learning, which trains a model on known input and output data to predict future outputs, and unsupervised learning, which uses hidden patterns or internal structures in the input data. In the case of this work, we will apply supervised machine learning techniques to estimate the quality of red wines.
+
+Supervised machine learning creates a model that makes predictions based on evidence in the presence of uncertainty. A supervised learning algorithm takes a known set of input data and known responses to the data (output) and trains a model to generate reasonable predictions for the response to the new data.  
+
+Supervised learning uses classification and regression techniques to develop machine learning models. Classification models classify the input data. Classification techniques predict discrete responses. For example, the email is genuine, or spam, if the tumor is cancerous or benign.
+
+Common algorithms for performing classification include support vector machines (SVMs), boosted and bagged decision trees, k-nearest neighbors, Naive Bayes, discriminant analysis, logistic regression, and neural networks.
+
+Regression techniques predict continuous responses - for example, changes in temperature or fluctuations in electricity demand. Typical applications include power load forecasting and algorithmic trading.
+
+<br>
+
+## 2. Overview and purpose of the project\
+
+This project is a requirement for the HarvardX Professional Certificate Data Science Program.
+
+Candidates were free to choose a publicly available data set to apply ML techniques. In this work, the dataset choosed was the [Wine Quality dataset from UCI](https://archive.ics.uci.edu/ml/datasets/wine+quality). The dataset was assembled with the intention of being used in [this scientific article](https://www.sciencedirect.com/science/article/abs/pii/S0167923609001377?via%3Dihub) by Cortez et al., 2009.
+
+The objective in this project is to train a machine learning algorithm that predicts the wine quality using the inputs of a train subset and the validation subset.
+
+Some works have already published on the subject and using this data set used groupings in the notes of the wines in order to simplify the prediction process. That is, they arbitrated between 'good'/'bad' or 'bad'/'medium'/'good' wines.
+
+The purpose here is precisely to go the hard way, using wine notes without simplifications and trying various ML techniques in order to practice their use and also compare their results and possible adjustments.
+
+That is, the objective is not to obtain the best possible result, but rather to create a robust framework of knowledge to be used in other datasets in the future.
+
+<br>
+
+## 3. Wine Quality\
+
+According to [A.G. Reynolds, 2010](https://www.sciencedirect.com/book/9781845694845/managing-wine-quality#book-description), wine quality is the result of a complex set of interactions, which include geological and soil variables, climate, and many variables, climate, and many viticultural decisions.
+
+Nevertheless, [Doris Rauhut, Florian Kiene, 2019](https://www.sciencedirect.com/science/article/pii/B9780128143995000190) says that red wine quality and style are highly influenced by the qualitative and quantitative composition of aromatic compounds having various chemical structures and properties and their interaction within different red wine matrices. The understanding of interactions between the wine matrix and volatile compounds and the impact on the overall flavor as well as on typical or specific aromas is getting more and more important for the creation of certain wine styles.
+
+### 3.1. Wine dataset\
+
+Due to privacy and logistic issues, only physicochemical (inputs) and sensory (the output) variables are available (e.g. there is no data about grape types, wine brand, wine selling price, etc.). The classes are ordered and not balanced (e.g. there are many more normal wines than excellent or poor ones).
+
+The input features are as follows:
+
+- fixed acidity - most acids involved with wine or fixed or nonvolatile (do not evaporate readily);
+- volatile acidity - the amount of acetic acid in wine, which at too high of levels can lead to an unpleasant, vinegar taste;
+- citric acid - found in small quantities, citric acid can add ‘freshness’ and flavor to wines;
+- residual sugar - the amount of sugar remaining after fermentation stops, it’s rare to find wines with less than 1 gram/liter and wines with greater than 45 grams/liter are considered sweet;
+- chlorides - the amount of salt in the wine;
+- free sulfur dioxide - the free form of SO2 exists in equilibrium between molecular SO2 (as a dissolved gas) and bisulfite ion; it prevents microbial growth and the oxidation of wine;
+- total sulfur dioxide - amount of free and bound forms of S02; in low concentrations, SO2 is mostly undetectable in wine, but at free SO2 concentrations over 50 ppm, SO2 becomes evident in the nose and  taste of wine;
+- density - the density of water is close to that of water depending on the percent alcohol and sugar content;
+- pH - describes how acidic or basic a wine is on a scale from 0 (very acidic) to 14 (very basic); most wines are between 3-4 on the pH scale;
+- sulphates - a wine additive which can contribute to sulfur dioxide gas (S02) levels, wich acts as an antimicrobial and antioxidant;
+- alcohol - the percent alcohol content of the wine;
+
+The output feature is:
+
+- quality - output variable (based on sensory data, score between 3 and 8 in this dataset);
+
+<br>
+
+\newpage
+
+## 4. Basic Setup and Data Preparation
+
+### 4.1. Basic Setup
+
+```{r Basic Setup, echo = TRUE}
+
+# Install and load libraries
+# Note: this process could take a couple of minutes
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+if(!require(reshape)) install.packages("reshape", repos = "http://cran.us.r-project.org")
+if(!require(rpart)) install.packages("rpart", repos = "http://cran.us.r-project.org")
+if(!require(visNetwork)) install.packages("visNetwork", repos = "http://cran.us.r-project.org")
+if(!require(GGally)) install.packages("GGally", repos = "http://cran.us.r-project.org")
+if(!require(MASS)) install.packages("MASS", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(randomForest)) install.packages("randomForest", repos = "http://cran.us.r-project.org")
+if(!require(nnet)) install.packages("nnet", repos = "http://cran.us.r-project.org")
+if(!require(class)) install.packages("class", repos = "http://cran.us.r-project.org")
+if(!require(e1071)) install.packages("e1071", repos = "http://cran.us.r-project.org")
+if(!require(xgboost)) install.packages("xgboost", repos = "http://cran.us.r-project.org")
+if(!require(png)) install.packages("png", repos = "http://cran.us.r-project.org")
+
+library(tidyverse)
+library(ggplot2)
+library(reshape)
+library(rpart)
+library(visNetwork)
+library(GGally)
+library(class)
+library(cvms)
+library(png)
+
+library(caret)        #confusionMatrix
+library(MASS)         #Linear Discriminant Analysis
+library(randomForest) #random forest
+library(nnet)         #multinom - logistic regression
+library(xgboost)      #xgboost
+library(e1071)        #Naive Bayes Classifier
+
+options(timeout = 120)
+set.seed(42)
+
+```
+
+
+### 4.2 Data Preparation
+
+```{r Basic Data Preparation, echo = TRUE}
+
+# Dataset
+# Load original dataset and create Train and Test dataset  
+
+#data_loading and processing
+df_red = read.csv('https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red',sep=';')
+
+df_red <- df_red %>% mutate(quality.factor = as.factor(df_red$quality))
+
+#spliting into train (80%) and test (20%) set
+indx = sample(1:nrow(df_red), size = 0.8 * nrow(df_red))
+
+TrainSet = df_red[indx,]
+TestSet = df_red[-indx,]
+
+rm(indx)
+
+#checkin the split, if test is 20% of total rows
+nrow(TestSet) / ( nrow(TrainSet) + nrow(TestSet) )
+
+
+```
+<br>
+
+
+
+## 5. Exploratory Analysis
+
+### 5.1 Basic Structure\
+
+There are only 1279 records in the training sample and just below we will understand the quantities in each quality classification. This is an important and constraining factor in the robustness of the strength we will have to apply ML techniques since the sample is relatively small given the large number of notes/quality that each wine can have.
+
+##### 5.1.1 Display the Structure of the dataset  
+
+```{r Display the Structure of the dataset, echo = FALSE}
+
+summary(TrainSet, digits = 3)
+
+```
+
+##### 5.1.2 Data head lines  
+
+```{r Data head, cols.print=14, echo = FALSE}
+
+knitr::kable(head(TrainSet[1:6]), "pipe", align=rep('r'))
+```
+
+```{r Data head 2, cols.print=14, echo = FALSE}
+knitr::kable(head(TrainSet[7:13]), "pipe", align=rep('r'))
+```
+
+
+##### 5.1.3 Data Sumary  
+
+```{r Data Sumary, echo = FALSE}
+str(TrainSet)
+```
+
+### 5.2 Data Exploration
+
+##### 5.2.1 Plot: Wines Quality vs quantity\
+
+We can see in the graph below that most of the records in the training sample are concentrated in the quality classification 6 and 5. Quality 7 is the third most frequent and the others contain only a few records.
+
+```{r Plot: Wines Quality vs quantity, echo=FALSE, out.width="80%"}
+
+
+TrainSet%>%
+  ggplot(aes(x = quality.factor))+
+  geom_bar() +
+  geom_text(
+    aes(label=after_stat(count)),
+    stat='count', vjust=-0.6, size=4)+ theme_gray(base_size = 11) + ylim(0, 650) + 
+  labs(title='Wines Quality vs quantity')
+
+```
+\newpage
+
+##### 5.2.2 Plot: Correlation between quality vs variables in dataset\
+  
+Crossing the correlation between the variables present in the dataset with 'quality', we have that 'quality' is positively correlated with alcohol, sulphates, citric acid and fixed acidity. However, is negatively correlated with volatile acidity'
+
+<br>
+
+```{r Plot: Correlation between quality vs variables in dataset, echo=FALSE, out.width="80%"}
+TrainSet[,-c(13)] %>%
+  cor() %>%
+  subset(,  c("quality")) %>%
+  melt()%>% 
+  filter(X1!="quality") %>%
+  ggplot(aes(X2,X1, fill=value))+
+  scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
+  geom_tile(color='black')+
+  geom_text(aes(label=paste(round(value,2))),size=3.5, color='black')+
+   theme_gray(base_size = 11) +
+  labs(title='Correlation between quality vs variables in dataset ',
+       subtitle = 'Quality is positively correlated with alcohol, sulphates, citric acid and fixed acidity. However, is negatively correlated with volatile acidity' ,x='' ,y='' )
+```
+
+
+\newpage
+
+##### 5.2.3 Plot: Dispersion and behavior between main correlated variables vs quality\
+
+
+Considering only the variables with the highest correlation vs 'quality' I used ggpairs to visually understand the differences in the characteristics of the selected variables vs 'quality'. We noticed that for some characteristics it is notable a distinct behavior of some degrees of 'quality', mainly the note 3 for many cases or for the note 5 for the concentration of alcohol. This form of visualization helps us to compare the sample dispersions, but the averages, medians and others can also be proved by the histograms on the right side.
+
+```{r Plot: Dispersion and behavior between main correlated variables vs quality, fig.width=20,fig.height = 17, echo=FALSE}
+ggpairs(TrainSet[,c(1,2,3,10,11,13)] , aes(color = quality.factor, alpha = 0.5) 
+        ,upper = list(
+          continuous = wrap("cor", size = 3))
+        ) + 
+  theme_gray(base_size = 27) +
+  labs(title='Dispersion and behavior between main correlated variables vs quality', x='',y='')
+
+```
+
+\newpage
+
+##### 5.2.4 Plot: Wine Quality Classification Tree\
+
+
+Another interesting tool to understand possible paths for classifying the sample is through a decision tree. It is interesting to see how the main characteristics found in the correlation study (alcohol, sulphates, citric acid and fixed acidity) make a difference in the branches of the decision tree.
+
+```{r Plot: Wine Quality Classification Tree, echo=FALSE}
+
+classification_tree <- rpart(quality.factor~alcohol+volatile.acidity+citric.acid+density+pH+sulphates, TrainSet)
+visNetwork::visTree(classification_tree, main = "Wine Quality Classification Tree")
+
+```
+
+```{r Plot: Wine Quality Classification Tree load, echo=FALSE}
+
+knitr::include_graphics("C:/Users/ferna/Documents/r-professional-certificate/wine_project/download1.png", auto_pdf = getOption("knitr.graphics.auto_pdf", FALSE),dpi = NULL)
+
+```
+
+
+
+
+<br>
+
+\newpage
+
+## 6. Applying Machine Learning techniques
+
+### 6.1. Nayve Bayes
+
+Naive Bayes is a Supervised Machine Learning algorithm based on the Bayes Theorem that is used to solve classification problems by following a probabilistic approach. It is based on the idea that the predictor variables in a Machine Learning model are independent of each other. Meaning that the outcome of a model depends on a set of independent variables that have nothing to do with each other. 
+
+The principle behind Naive Bayes is the Bayes theorem also known as the Bayes Rule. The Bayes theorem is used to calculate the conditional probability, which is nothing but the probability of an event occurring based on information about the events in the past.
+
+```{r ML Naive Bayes, echo = TRUE}
+
+mod.naivebayes <- naiveBayes(quality.factor ~ ., TrainSet[,-c(12)])
+confusionMatrix(predict(mod.naivebayes,  TestSet), TestSet$quality.factor)
+
+```
+
+Naive Bayes achieved 0.5812 of accuracy and the highest sensitivity occurred in grade 5, at 0.6496. In the Confusion Matrix we can see that most of the prediction errors occurred between grades 5, 6 and 7. 
+
+### 6.2. KNN
+
+KNN is a Supervised Learning algorithm that uses labeled input data set to predict the output of the data points. It is mainly based on feature similarity. KNN checks how similar a data point is to its neighbor and classifies the data point into the class it is most similar to.
+
+To apply the KNN model first its important to calculate the the square root of the number of records to be used. as we arrived at a decimal number, I ran the two possible possibilities in order to compare the accuracy between these two possibilities.
+
+
+```{r ML KNN, echo = TRUE}
+
+#Finding the number of observations
+sqrt(NROW(TrainSet))
+
+#trying both
+
+mod.knn.35 <- knn(train=TrainSet[,-c(12)], test=TestSet[,-c(12)], cl=TrainSet[,c(13)], k=35)
+mod.knn.36 <- knn(train=TrainSet[,-c(12)], test=TestSet[,-c(12)], cl=TrainSet[,c(13)], k=36)
+
+confusionMatrix(table(mod.knn.35 ,TestSet$quality.factor))
+confusionMatrix(table(mod.knn.36 ,TestSet$quality.factor))
+
+```
+
+
+KNN achieved 0.5844 of accuracy and the highest sensitivity occurred in grade 5, at 0.7518. In the Confusion Matrix we can see that most of the prediction errors occurred between grades 5, 6 and 7. 
+
+
+### 6.3. Multinomial Logistic Regression
+
+Multinomial logistic regression is used to model nominal outcome variables, in which the log odds of the outcomes are modeled as a linear combination of the predictor variables.
+
+
+```{r ML Multinomial Logistic Regression, echo = TRUE}
+
+mod.logistic.regression = multinom(quality.factor~., TrainSet[,-c(12)])
+confusionMatrix(predict(mod.logistic.regression, TestSet),  TestSet$quality.factor)
+```
+
+MLR achieved 0.6188 of accuracy and the highest sensitivity occurred in grade 5, at 0.7591. In the Confusion Matrix we can see that most of the prediction errors occurred between grades 5, 6 and 7. 
+
+### 6.4. LDA
+
+Linear Discriminant Analysis (LDA) is a dimensionality reduction technique. LDA used for dimensionality reduction to reduce the number of dimensions (i.e. variables) in a dataset while retaining as much information as possible.
+
+LDA is used to determine group means and also for each individual, it tries to compute the probability that the individual belongs to a different group.
+
+\newpage
+
+```{r ML LDA, echo = TRUE}
+
+mod.linear.discriminant.analysis  <-lda(quality.factor ~ ., TrainSet[,-c(12)])
+confusionMatrix(predict(mod.linear.discriminant.analysis, TestSet)$class, TestSet$quality.factor)
+```
+
+
+LDA achieved 0.6094 of accuracy and the highest sensitivity occurred in grade 5, at 0.7664. In the Confusion Matrix we can see that most of the prediction errors occurred between grades 5, 6 and 7. 
+
+### 6.5. Random Forest\
+
+Random Forest is an ensemble of decision trees. It builds and combines multiple decision trees to get more accurate predictions. It’s a non-linear classification algorithm. Each decision tree model is used when employed on its own. 
+
+Random Forest are called 'random' because they choose predictors randomly at a time of training. They are called forest because they take the output of multiple trees to make a decision. Random forest outperforms decision trees as a large number of uncorrelated trees(models) operating as a committee will always outperform the individual constituent models.
+
+
+```{r ML Random Forest Default, echo = TRUE}
+#random forest default
+set.seed(42)
+mod.random.forest.default <- randomForest(quality.factor~., TrainSet[,-c(12)])
+confusionMatrix(predict(mod.random.forest.default, TestSet), TestSet$quality.factor)
+
+```
+
+
+RF achieved 0.7344 of accuracy and the highest sensitivity occurred in grade 5, at 0.8394. In the Confusion Matrix we can see that most of the prediction errors occurred between grades 5, 6 and 7. 
+
+##### 6.5.1. Random Forest mtry analyse\
+
+According to [Manish Saraswat](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/tutorial-random-forest-parameter-tuning-r/tutorial/) there are three parameters in the random forest algorithm which we should look at for tuning:
+
+ntree: The number of trees to grow. Larger the tree, it will be more computationally expensive to build models.
+
+nodesize: Refers to how many observations we want in the terminal nodes. This parameter is directly related to tree depth. Higher the number, lower the tree depth. With lower tree depth, the tree might even fail to recognize useful signals from the data.
+
+mtry: Refers to how many variables we should select at a node split. Also as mentioned above, the default value is p/3 for regression and sqrt(p) for classification. We should always try to avoid using smaller values of mtry to avoid overfitting.
+
+Mtry is a good starting point for tuning the model and can give good results. I will plot below in a graph the possible values for mtry and their practical effects on the result. After that, I will use the best value to run the model again if it is necessary.
+
+Attention: This process may take several minutes to run.
+
+
+```{r ML Random Forest mtry analyse, echo = TRUE}
+#checking if the default mtry is good enough
+#it can take several minutes
+
+set.seed(42)
+control <- trainControl(method='repeatedcv', number=10, repeats=2)
+plot(train(quality.factor~., data=TrainSet[,-c(12)], method="rf", tuneLength=15, trControl=control))
+
+```
+
+The best highest accuracy already was achieved in the default parameters and mtry = 2.
+
+
+### 6.6. XGBoost\
+
+XGBoost is a short form for Extreme Gradient Boosting and is similar to gradient boosting framework but more efficient. It has both linear model solver and tree learning algorithms. XGBoost only works with numeric vectors.
+
+It belongs to a family of boosting algorithms that convert weak learners into strong learners. Boosting is a sequential process; i.e., trees are grown using the information from a previously grown tree one after the other. This process slowly learns from data and tries to improve its prediction in subsequent iterations.
+
+According to the [XGBoost website](https://xgboost.readthedocs.io/en/stable/parameter.html), before running the model we must set three types of parameters: general parameters, booster parameters and task parameters.
+
+- General parameters relate to which booster we are using to do boosting, commonly tree or linear model
+
+- Booster parameters depend on which booster you have chosen
+
+- Learning task parameters decide on the learning scenario. For example, regression tasks may use different parameters with ranking tasks.
+
+I tried several templates and tweaks and the one that worked best was this one below. Here is the explanation of the parameters:
+
+max_depth: Maximum depth of a tree. Increasing this value will make the model more complex and more likely to overfit. 0 indicates no limit on depth. Beware that XGBoost aggressively consumes memory when training a deep tree
+
+subsample: Subsample ratio of the training instances. Setting it to 0.5 means that XGBoost would randomly sample half of the training data prior to growing trees. and this will prevent overfitting. Subsampling will occur once in every boosting iteration.
+
+eta: Step size shrinkage used in update to prevents overfitting. After each boosting step, we can directly get the weights of new features, and eta shrinks the feature weights to make the boosting process more conservative.
+
+gamma: Minimum loss reduction required to make a further partition on a leaf node of the tree. The larger gamma is, the more conservative the algorithm will be.
+
+
+multi:softprob: set XGBoost to do multiclass classification using the softprob objective. It will output a vector of ndata * nclass, which can be further reshaped to ndata * nclass matrix. The result contains predicted probability of each data point belonging to each class (it´s necessary to set the num_class too). I will show this output below.
+
+mlogloss: Logistic loss or cross-entropy loss. This is the loss function used in (multinomial) logistic regression and extensions of it such as neural networks, defined as the negative log-likelihood of a logistic model that returns y_pred probabilities for its training data y_true.
+
+
+```{r ML XGBoost Model, echo = TRUE}
+set.seed(42)
+xgb_train <- xgb.DMatrix(data = as.matrix(TrainSet[1:11]), label = as.integer(TrainSet$quality) - 3)
+xgb_test <- xgb.DMatrix(data = as.matrix(TestSet[1:11]), label = as.integer(TestSet$quality) - 3)
+xgb_params <- list(
+  max_depth = 5,
+  subsample = 0.9,
+  eta                = 0.08,              
+  gamma              = 0.7,                 
+  objective = "multi:softprob",
+  eval_metric = "mlogloss",
+  num_class = length(levels(as.factor(df_red$quality)))
+)
+
+xgb_model <- xgb.train(
+  params = xgb_params,
+  data = xgb_train,
+  nrounds = 300,
+  verbose = 0
+)
+
+xgb_model
+
+```
+
+##### 6.6.1. XGBoost Importance List\
+
+It shows how much each feature contributed to the result.
+
+```{r ML XGBoost Importance list, echo = TRUE, out.width="80%"}
+
+importance_matrix <- xgb.importance(
+  feature_names = colnames(xgb_train), 
+  model = xgb_model
+)
+
+ggplot(data=importance_matrix, aes(x=reorder(Feature, Gain), y= Gain )) +
+  geom_bar(stat="identity") + coord_flip() +
+  labs(title = "Feature importance", x = "Feauture", y = "Gain")
+
+```
+
+
+##### 6.6.2. XGBoost Prediction\
+<br>
+For each record of the test dataset, the percentage of chances that each factor has, according to the model, of being the most adequate answer is shown. In addition, the last two columns show both the predicted value (referring to the one with the highest probability) and the value found in the dataset.
+
+```{r ML XGBoost Prediction, echo = TRUE}
+
+set.seed(42)
+xgb_preds <- predict(xgb_model, as.matrix(TestSet[1:11]), reshape = TRUE)
+xgb_preds <- as.data.frame(xgb_preds)
+colnames(xgb_preds) <- levels(as.factor(df_red$quality))
+#xgb_preds
+
+
+xgb_preds$PredictedClass <- apply(xgb_preds, 1, function(y) colnames(xgb_preds)[which.max(y)])
+xgb_preds$ActualClass <- levels(as.factor(df_red$quality))[as.integer(TestSet$quality) - 3 + 1]
+#xgb_preds
+
+head(xgb_preds) %>% mutate(across(where(is.numeric), ~ round(., 4)))
+
+```
+
+##### 6.6.3. XGBoost Confusion Matrix
+
+
+
+```{r ML XGBoost Confusion Matrix, echo = TRUE}
+
+cm <- confusionMatrix(factor(xgb_preds$ActualClass), factor(xgb_preds$PredictedClass, levels = 3:8))
+
+cm
+
+```
+
+XGB achieved 0.7156 of accuracy and the highest sensitivity occurred in grade 5, at 0.7671. In the Confusion Matrix we can see that most of the prediction errors occurred between grades 5, 6 and 7.
+
+
+## 7. Conclusion\
+
+
+The objective in this project was to train a machine learning algorithm that predicts the wine quality using the inputs of a train subset and the validation subset.
+
+We could attest that the application of several ML models requires understanding the applicability of each model for each type of dataset and data. It is important to note that for each model it is necessary to model the data so that it best fits each need. For example, in the case of XGBoost, where it is necessary to feed the model with data separately from the labels, as well as defining the number of classes and factors being used.
+
+There is no model that is best in all scenarios and needs. Simpler models can deliver better and faster results in some situations. More complex models and time-consuming tunings can deliver little or no improvement in the result after all, in addition to being necessary to consider the amount of additional processing that will be used.
+
+Regarding the dataset used and the results obtained, it is important to note that there are characteristics that are confused, between different notes of the wines, which makes a better accuracy of the prediction difficult. In addition, the relatively small size of the dataset also influences the difficulty of obtaining better results. The best accuracy (0.7344) was achieved with the Random Forest.
+
+As a suggestion for future works, I think it is worthwhile investing in the search for greater tuning in the models already presented or the use of new approaches. The simplification of the wine grades searched for between 'good'/'bad', among others, is a possibility to deliver greater accuracy according to the interest of the application.
+
+## 8. References
+
+[A.G. Reynolds, 2010](https://www.sciencedirect.com/book/9781845694845/managing-wine-quality#book-description)
+
+[Cortez et al., 2009](https://www.sciencedirect.com/science/article/abs/pii/S0167923609001377?via%3Dihub)
+
+[Doris Rauhut, Florian Kiene, 2019](https://www.sciencedirect.com/science/article/pii/B9780128143995000190)
+
+[Javatpoint](https://www.javatpoint.com/machine-learning-techniques)
+
+[Manish Saraswat](https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/tutorial-random-forest-parameter-tuning-r/tutorial/)
+
+[Wine Quality dataset from UCI](https://archive.ics.uci.edu/ml/datasets/wine+quality)
+
+[XGBoost website](https://xgboost.readthedocs.io/en/stable/parameter.html)
+
+
